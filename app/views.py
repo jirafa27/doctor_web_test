@@ -4,13 +4,14 @@ import glob
 from flask import render_template, request, flash, redirect
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import exc
+from flask import send_from_directory
 
 from .extensions import db
 from models import File
 from .app import app
 from helpers import get_hash_md5
-from sqlalchemy import exc
-from flask import send_from_directory
+
 
 auth = HTTPBasicAuth()
 
@@ -32,12 +33,6 @@ def verify_password(username, password):
 def index():
     print(auth.username())
     return render_template("index.html")
-
-
-@app.route('/logout')
-@auth.login_required
-def logout():
-    return redirect('/')
 
 
 @app.route('/add', methods=['POST'])
@@ -100,17 +95,19 @@ def delete():
         files = [filename for filename in glob.glob(f'{path}.*')]
         if not files:
             return render_template("result.html", message="File does not exists", name=filename)
-        if not db.session.query(File).filter(File.hash_sum==filename, File.username==request.authorization['username']).all():
-            return render_template("result.html", message=f"File has not created by user. It can not be deleted", name=filename)
+        if not db.session.query(File).filter(File.hash_sum == filename,
+                                             File.username == request.authorization['username']).all():
+            return render_template("result.html", message=f"File has not created by user. It can not be deleted",
+                                   name=filename)
 
         for f in files:
             os.remove(f)
-        db.session.query(File).filter(File.hash_sum==filename).delete()
+        db.session.query(File).filter(File.hash_sum == filename).delete()
         db.session.commit()
         if not len(os.listdir(os.path.join(app.config['UPLOAD_FOLDER'],
-                                directory))):
+                                           directory))):
             os.rmdir(os.path.join(app.config['UPLOAD_FOLDER'],
-                                directory))
+                                  directory))
         return render_template("result.html", message="File deleted successfully", name=filename)
 
 
