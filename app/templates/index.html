@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+    <form action = "/add" method = "post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type = "submit" value="Upload">
+    </form>
+    <form action = "/delete" method = "post" enctype="multipart/form-data">
+        <input type="text" name="hash">
+        <input type = "submit" value="Delete">
+    </form>
+    <form action = "/get" method = "post" enctype="multipart/form-data">
+        <input type="text" name="hash">
+        <input type = "submit" value="Download">
+    </form>
+{% endblock %}
